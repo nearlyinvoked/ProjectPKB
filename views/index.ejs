@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Face Recognition</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+    <link rel="stylesheet" type="text/css"href="styles/index.css">
+
+  </head>
+  <body>
+    
+
+<!-- NavBar Begins -->
+    <nav class="navbar navbar-inverse navbar-fixed-top ">
+      <div class="container">
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+          </button>
+
+          <a class="navbar-brand navhead" href="#">FACE RECOGNIZING</a>
+        </div>
+        <ul class="nav navbar-nav collapse navbar-collapse  "id="myNavbar">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Why us</a></li>
+          <li><a href="#">Contact Us</a></li>
+        </ul>
+      </div>
+    </nav>
+    <br>
+    <br>
+    <br>
+
+<!-- Image Upload -->
+    <div class="container">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label>Upload Image</label>
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <span class="btn btn-default btn-file">
+                        Browse… <input type="file" id="imgInp">
+                    </span>
+                </span>
+                <input type="text" class="form-control" readonly>
+            </div>
+            <img id='img-upload'/>
+        </div>
+    </div>
+    <div class="col-md-1">
+
+    </div>
+    <div class="col-md-3">
+      <div class="row">
+        <label for="upldbtn">Upload Image to Server </label>
+        <button type="button" id="upldbtn"class="btn btn-primary disabled"onclick="UploadToNodeServer();"style="width:100%">
+          <span class="navhead">Upload</span>
+        </button>
+      </div>
+          <br>
+        <div class="row"id="recognizeBlock"style="visibility:hidden;">
+          <label for="recognize">Recognize Image Neural Network </label>
+          <button type="button"id="recognize" class="btn btn-success"onclick="Recognize()"style="width:100%;">
+            <span class="navhead">Recognize</span>
+          </button>
+        </div>
+
+        <div class="row table-responsive table-hover table-condensed"id="tble"style="visibility:hidden">
+          <table class="table"id="tableData">
+          </table>
+        </div>
+    </div>
+
+
+    </div>
+<!-- Image Upload Ends -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  </body>
+</html>
+
+<!-- Upload Image js -->
+<script src="javascripts/uploadClient.js"></script>
+<!-- Socket io -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+
+<script>
+
+var socket = io();
+
+function UploadToNodeServer(){
+var buf=$('#img-upload').attr('src');
+socket.emit('imageUpload',{ image: true, buffer: buf ,format:sessionStorage.getItem('format') });
+$('#upldbtn').addClass('disabled');
+}
+
+socket.on('UploadSuccess',function(msg){
+  if(msg==='true'){
+    alert("Image Uploaded Successfully");
+    $('#recognizeBlock').css('visibility','visible');
+  }
+  else{
+    alert("Error Unable to  Uploaded Image");
+    $('#upldbtn').removeClass('disabled');
+  }
+});
+function compare(a,b) {
+  if (a.distance < b.distance)
+  return -1;
+  if (a.distance > b.distance)
+  return 1;
+  return 0;
+}
+function Recognize(){
+  $.ajax({url: "/recognize", success: function(result){
+        callback(result,'success');
+      },
+      error: function(errorMsg){
+        callback(errorMsg,'failure');
+      }
+    });
+}
+
+function callback(result,status){
+  if(status==='success'){
+    result.sort(compare);
+    $('#tble').css('visibility','visible');
+    $('#tableData').html("<tr><th>Actor</th><th>Probability</th></tr>");
+    console.log(result);
+    for(var i=0;i<result.length;i++){
+      if(i==0)
+      $('#tableData').append("<tr class='success'>"+
+      "<td>"+result[i].className+"</td>"+
+      "<td>"+(Math.round((1-result[i].distance)*100))+"%"+"</td>"+
+      "</tr>");
+      else
+      $('#tableData').append("<tr>"+
+      "<td>"+result[i].className+"</td>"+
+      "<td>"+(Math.round((1-result[i].distance)*100))+"%"+"</td>"+
+      "</tr>");
+    }
+  }
+  else{
+    console.log(result);
+    alert(result.responseJSON.msg);
+  }
+}
+</script>

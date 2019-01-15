@@ -1,0 +1,21 @@
+{
+  "name": "projectpkb",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "ejs": "^2.6.1",
+    "express": "~4.16.0",
+    "face-recognition": "^0.9.4",
+    "git": "^0.1.5",
+    "http-errors": "~1.6.2",
+    "morgan": "~1.9.0",
+    "opencv4nodejs": "^4.14.0",
+    "pug": "2.0.0-beta11",
+    "socket.io": "^2.2.0"
+  }
+}
